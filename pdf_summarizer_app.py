@@ -37,7 +37,7 @@ st.sidebar.title("📁 Upload Your PDF")
 uploaded_file = st.sidebar.file_uploader("Choose a PDF file", type=["pdf"])
 num_sentences = st.sidebar.slider("Summary length (in sentences)", 1, 10, 3)
 
-# ---------------------- PROCESS PDF & SUMMARIZE ----------------------
+# ---------------------- HELPER FUNCTIONS ----------------------
 def extract_text_from_pdf(file):
     with pdfplumber.open(file) as pdf:
         return " ".join([page.extract_text() for page in pdf.pages if page.extract_text()])
@@ -48,16 +48,18 @@ def generate_summary(text, n_sentences):
     summary = summarizer(parser.document, n_sentences)
     return " ".join(str(sentence) for sentence in summary)
 
-# ---------------------- MAIN APP LOGIC ----------------------
+# ---------------------- MAIN LOGIC ----------------------
 if uploaded_file:
-    raw_text = extract_text_from_pdf(uploaded_file)
     st.subheader("🧾 Extracted Text:")
+    raw_text = extract_text_from_pdf(uploaded_file)
     st.text_area("Full Document Text", raw_text, height=200)
 
-    if st.sidebar.button("Generate Summary"):
+    if st.button("🕒 Summarize"):
+        with st.spinner("Generating summary... please wait 🧠"):
+            summary_text = generate_summary(raw_text, num_sentences)
+
         st.subheader("📝 Summary:")
-        summary_text = generate_summary(raw_text, num_sentences)
         st.write(summary_text)
 
-        # Download summary
+        # Download Button
         st.download_button("📥 Download Summary", summary_text, file_name="summary.txt", mime="text/plain")
